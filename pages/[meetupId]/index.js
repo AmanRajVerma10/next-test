@@ -1,47 +1,57 @@
+import { MongoClient, ObjectId } from "mongodb";
 import MeetupDetail from "../../components/meetups/MeetupDetail";
 
-const Detail = () => {
+const Detail = (props) => {
   return (
     <MeetupDetail
-      image="https://upload.wikimedia.org/wikipedia/commons/d/d3/Stadtbild_M%C3%BCnchen.jpg"
-      title="A First Meeting"
-      address="Park Street,Munich"
-      description="this is a test."
+      image={props.meetupData.image}
+      title={props.meetupData.title}
+      address={props.meetupData.address}
+      description={props.meetupData.description}
     ></MeetupDetail>
   );
 };
 
-export async function getStaticPaths(){
-  return{
-    fallback:false,
-    paths:[
-      {
-        params:{
-          meetupId:'m1'
-        },
+export async function getStaticPaths() {
+  const client = await MongoClient.connect(
+    "mongodb+srv://AmanRajVerma:amanrajverma@cluster0.5uhe1jy.mongodb.net/meetups?retryWrites=true&w=majority"
+  );
+  const db = client.db();
+  const meetupsCollection = db.collection("meetup");
+  const meetups = await meetupsCollection.find({}, { _id: 1 }).toArray();
+  client.close();
+  return {
+    fallback: false,
+    paths: meetups.map((meetup) => ({
+      params: {
+        meetupId: meetup._id.toString(),
       },
-      {
-        params:{
-          meetupId:'m2'
-        },
-      }
-    ]
-  }
+    })),
+  };
 }
 
 export async function getStaticProps(context) {
   const meetupId = context.params.meetupId;
+  const client = await MongoClient.connect(
+    "mongodb+srv://AmanRajVerma:amanrajverma@cluster0.5uhe1jy.mongodb.net/meetups?retryWrites=true&w=majority"
+  );
+  const db = client.db();
+  const meetupsCollection = db.collection("meetup");
+  const selectedMeetup = await meetupsCollection.findOne({
+    _id: new ObjectId(meetupId),
+  });
+  console.log(selectedMeetup)
+  client.close();
 
   return {
     props: {
-      meetupData: {
-        image:
-          "https://upload.wikimedia.org/wikipedia/commons/d/d3/Stadtbild_M%C3%BCnchen.jpg",
-        title: "A First Meeting",
-        id:meetupId,
-        address: "Park Street,Munich",
-        description: "this is a test.",
-      },
+      meetupData:{
+        id:selectedMeetup._id.toString(),
+        image:selectedMeetup.image,
+        title:selectedMeetup.title,
+        address:selectedMeetup.address,
+        description:selectedMeetup.description
+      }
     },
   };
 }
