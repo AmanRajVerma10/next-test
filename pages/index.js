@@ -1,8 +1,16 @@
 import { MongoClient } from "mongodb";
 import MeetupList from "../components/meetups/MeetupList";
+import Head from "next/head";
 
 function HomePage(props){
-    return(<MeetupList meetups={props.meetups}></MeetupList> )
+    return(
+    <>
+    <Head>
+        <title>Next Meetups</title>
+        <meta name="description" content="app to learn next basics"></meta>
+    </Head>
+    <MeetupList meetups={props.meetups}></MeetupList>
+    </> )
 }
 
 export async function getStaticProps(){
